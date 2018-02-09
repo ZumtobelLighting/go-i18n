@@ -13,7 +13,7 @@ type pluralFormTest struct {
 
 func runTests(t *testing.T, pluralRuleID string, tests []pluralFormTest) {
 	pluralRuleID = normalizePluralRuleID(pluralRuleID)
-	pluralRules := DefaultPluralRules()
+	pluralRules := CLDRPluralRules()
 	if rule := pluralRules[pluralRuleID]; rule != nil {
 		for _, test := range tests {
 			if plural, err := rule.PluralForm(test.num); plural != test.pluralForm {

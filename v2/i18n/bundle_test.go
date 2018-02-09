@@ -1,10 +1,13 @@
 package i18n_test
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 
+	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	yaml "gopkg.in/yaml.v2"
 )
 
 var simpleTranslation = i18n.MustNewTranslation("simple", map[string]string{
@@ -28,6 +31,7 @@ var everythingTranslation = i18n.MustNewTranslation("everything", map[string]str
 
 func TestJSON(t *testing.T) {
 	var bundle i18n.Bundle
+	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
 	bundle.MustParseTranslationFileBytes([]byte(`{
 	"simple": "simple translation",
 	"detail": {
@@ -52,6 +56,7 @@ func TestJSON(t *testing.T) {
 
 func TestYAML(t *testing.T) {
 	var bundle i18n.Bundle
+	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
 	bundle.MustParseTranslationFileBytes([]byte(`
 # Comment
 simple: simple translation
@@ -79,6 +84,7 @@ everything:
 
 func TestTOML(t *testing.T) {
 	var bundle i18n.Bundle
+	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 	bundle.MustParseTranslationFileBytes([]byte(`
 # Comment
 simple = "simple translation"
