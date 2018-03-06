@@ -45,14 +45,14 @@ func TestExtract2(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			translations, err := i18n.ExtractTranslations([]byte(test.file))
-			if err != test.err {
-				t.Errorf("i18n.ExtractTranslations(%q)\nexpected error: %q\n     got error: %q", test.file, test.err, err)
-			}
-			if !reflect.DeepEqual(translations, test.translations) {
-				t.Errorf("i18n.ExtractTranslations(%q)\nexpected: %#v\n     got: %#v", test.file, test.translations, translations)
-			}
-		})
+		// t.Run(test.name, func(t *testing.T) {
+		translations, err := i18n.ExtractTranslations([]byte(test.file))
+		if err != test.err {
+			t.Errorf("i18n.ExtractTranslations(%q)\nexpected error: %q\n     got error: %q", test.file, test.err, err)
+		}
+		if !reflect.DeepEqual(translations, test.translations) {
+			t.Errorf("i18n.ExtractTranslations(%q)\nexpected: %#v\n     got: %#v", test.file, test.translations, translations)
+		}
+		// })
 	}
 }
