@@ -8,18 +8,26 @@ import (
 	"unicode/utf8"
 )
 
-// LanguageTagRegex Matches language tags like en-US, and zh-Hans-CN.
+// LanguageTagRegex matches language tags like en, en-US, and zh-Hans-CN.
 // Language tags are case-insensitive.
-var LanguageTagRegex = regexp.MustCompile(`[a-zA-Z]{2,}([\-_][a-zA-Z]{2,})+`)
+var LanguageTagRegex = regexp.MustCompile(`[a-zA-Z]{2,}([\-_][a-zA-Z]{2,})*`)
 
-// Translator translates messages.
+// Translator provides Translate and MustTranslate methods to translate messages.
+//
+// Use DefaultTranslator to define default translations in Go source code that
+// can be extracted using the goi18n command.
 type Translator struct {
-	Bundle       *Bundle
+
+	// Bundle is the bundle that the Translator returns translations from.
+	Bundle *Bundle
+
+	// LanguageTags is the list of language tags that the Translator checks
+	// in order until it finds a translation.
 	LanguageTags []string
 }
 
-// NewTranslator returns a translator that looks up translations
-// in the bundle according to the order of language tags found in preferences.
+// NewTranslator returns a new Translator that looks up translations
+// in the bundle according to the order of language tags found in prefs.
 //
 // It can parse languages from Accept-Language headers (RFC 2616),
 // but it assumes weights are monotonically decreasing.
@@ -64,12 +72,17 @@ func dedupe(strs []string) []string {
 	return deduped
 }
 
-// Translate iterates through language tags to find the first non-empty translation in the bundle.
-// It returns the default translation if no other translation is found.
-func (t *Translator) Translate(id, defaultTranslation string, args ...interface{}) string {
-	if len(args) > 2 {
-		panic("too many args passed to Localize")
-	}
+//     Translate(id string)
+//     Translate(id string, templateData interface{})
+//     Translate(id string, pluralCount interface{})
+//     Translate(id string, pluralCount, templateData interface{})
+func (t *Translator) Translate(id string, args ...interface{}) (string, error) {
+	pluralCount, templateData := parseArgs(args)
+	operands, _ := newOperands(pluralCount)
+	return t.translate(id, operands, templateData)
+}
+
+func (t *Translator) translate(id string, operands *Operands, templateData interface{}) (string, error) {
 	for _, langTag := range t.LanguageTags {
 		translations := t.Bundle.Translations[langTag]
 		if translations == nil {
@@ -79,22 +92,35 @@ func (t *Translator) Translate(id, defaultTranslation string, args ...interface{
 		if translation == nil {
 			continue
 		}
-		pluralRule := t.Bundle.PluralRules[langTag]
-		if pluralRule == nil {
-			continue
+		pluralForm := t.pluralForm(langTag, operands)
+		if pluralForm == Invalid {
+			return "", fmt.Errorf("unable to pluralize %q because there no plural rule for %q", id, langTag)
 		}
-		pluralCount, data := parseArgs(args)
-		pluralForm, err := pluralRule.PluralForm(pluralCount)
-		if err != nil {
-			return fmt.Sprintf("[ERR][%s] %s", id, err.Error())
+		if translated := translation.Translate(pluralForm, templateData); translated != "" {
+			return translated, nil
 		}
-		translated := translation.Translate(pluralForm, data)
-		if translated == "" {
-			continue
-		}
-		return translated
 	}
-	return defaultTranslation
+	return "", nil
+}
+
+func (t *Translator) pluralForm(langTag string, operands *Operands) PluralForm {
+	if operands == nil {
+		return Other
+	}
+	pluralRule := t.Bundle.PluralRules[langTag]
+	if pluralRule == nil {
+		return Invalid
+	}
+	return pluralRule.PluralFormFunc(operands)
+}
+
+// MustTranslate is similar to Translate, except it panics if an error happens.
+func (t *Translator) MustTranslate(id string, args ...interface{}) string {
+	translated, err := t.Translate(id, args...)
+	if err != nil {
+		panic(err)
+	}
+	return translated
 }
 
 func parseArgs(args []interface{}) (count interface{}, data interface{}) {

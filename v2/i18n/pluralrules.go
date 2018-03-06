@@ -10,16 +10,6 @@ type PluralRule struct {
 	PluralFormFunc func(*Operands) PluralForm
 }
 
-// PluralForm returns the plural form of the number
-// as defined by the language's CLDR plural rules.
-func (ps *PluralRule) PluralForm(number interface{}) (PluralForm, error) {
-	ops, err := newOperands(number)
-	if err != nil {
-		return Invalid, err
-	}
-	return ps.PluralFormFunc(ops), nil
-}
-
 func normalizePluralRuleID(id string) string {
 	id = strings.Replace(id, "_", "-", -1)
 	id = strings.ToLower(id)

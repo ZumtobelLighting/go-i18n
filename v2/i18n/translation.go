@@ -1,6 +1,6 @@
 package i18n
 
-// TODO: rename to message?
+// TODO: rename to MessageTemplate?
 
 // Translation contains the data for a single translation.
 type Translation struct {

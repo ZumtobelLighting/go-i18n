@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 )
 
 // UnmarshalFunc unmarshals data into v.
@@ -63,9 +64,9 @@ func (b *Bundle) MustLoadTranslationFile(path string) {
 // ParseTranslationFileBytes parses the bytes in buf to add translations to the bundle.
 // It is useful for parsing translation files embedded with go-bindata.
 //
-// The format of the file is everything after the first ".", or the whole path if there is no ".".
+// The format of the file is everything after the last ".".
 //
-// The language tag of path is the last match of LanguageTagRegex.
+// The language tag of path is the last match of LanguageTagRegex, excluding everything after the last ".".
 func (b *Bundle) ParseTranslationFileBytes(buf []byte, path string) error {
 	if len(buf) == 0 {
 		return nil
@@ -117,18 +118,22 @@ func (b *Bundle) ParseTranslationFileBytes(buf []byte, path string) error {
 		}
 		translations = append(translations, t)
 	}
-	langTags := LanguageTagRegex.FindAllString(path, -1)
+	pathNoFormat := path[:len(path)-len(format)]
+	langTags := LanguageTagRegex.FindAllString(pathNoFormat, -1)
+	if len(langTags) == 0 {
+		return fmt.Errorf("no language tag found in path: %s", path)
+	}
 	langTag := langTags[len(langTags)-1]
 	return b.AddTranslations(langTag, translations...)
 }
 
 func parseFormat(path string) string {
-	for i := len(path) - 1; i >= 0 && path[i] != '/'; i-- {
+	for i := len(path) - 1; i >= 0 && !os.IsPathSeparator(path[i]); i-- {
 		if path[i] == '.' {
 			return path[i+1:]
 		}
 	}
-	return path
+	return ""
 }
 
 // MustParseTranslationFileBytes is similar to ParseTranslationFileBytes

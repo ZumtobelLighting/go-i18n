@@ -2,6 +2,7 @@ package i18n
 
 import (
 	"fmt"
+	"strings"
 )
 
 // PluralForm represents a language pluralization form as defined here:
@@ -10,7 +11,7 @@ type PluralForm string
 
 // All defined plural categories.
 const (
-	Invalid PluralForm = "invalid"
+	Invalid PluralForm = ""
 	Zero    PluralForm = "zero"
 	One     PluralForm = "one"
 	Two     PluralForm = "two"
@@ -22,6 +23,7 @@ const (
 // NewPluralForm returns src as a PluralForm
 // or Invalid and a non-nil error if src is not a valid PluralForm.
 func NewPluralForm(src string) (PluralForm, error) {
+	src = strings.ToLower(src)
 	switch src {
 	case "zero":
 		return Zero, nil

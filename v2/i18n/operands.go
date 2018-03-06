@@ -48,24 +48,25 @@ func (o *Operands) NModInRange(mod, from, to int64) bool {
 	return o.T == 0 && from <= modI && modI <= to
 }
 
-func newOperands(v interface{}) (*Operands, error) {
-	switch v := v.(type) {
+// newOperands returns the operands for number.
+func newOperands(number interface{}) (*Operands, error) {
+	switch number := number.(type) {
 	case int:
-		return newOperandsInt64(int64(v)), nil
+		return newOperandsInt64(int64(number)), nil
 	case int8:
-		return newOperandsInt64(int64(v)), nil
+		return newOperandsInt64(int64(number)), nil
 	case int16:
-		return newOperandsInt64(int64(v)), nil
+		return newOperandsInt64(int64(number)), nil
 	case int32:
-		return newOperandsInt64(int64(v)), nil
+		return newOperandsInt64(int64(number)), nil
 	case int64:
-		return newOperandsInt64(v), nil
+		return newOperandsInt64(number), nil
 	case string:
-		return newOperandsString(v)
+		return newOperandsString(number)
 	case float32, float64:
 		return nil, fmt.Errorf("floats should be formatted into a string")
 	default:
-		return nil, fmt.Errorf("invalid type %T; expected integer or string", v)
+		return nil, fmt.Errorf("invalid type %T; expected integer or string", number)
 	}
 }
 

@@ -11,11 +11,18 @@ func TestNewPluralForm(t *testing.T) {
 		err        bool
 	}{
 		{"zero", Zero, false},
+		{"Zero", Zero, false},
 		{"one", One, false},
+		{"One", One, false},
 		{"two", Two, false},
+		{"Two", Two, false},
 		{"few", Few, false},
+		{"Few", Few, false},
 		{"many", Many, false},
+		{"Many", Many, false},
 		{"other", Other, false},
+		{"Other", Other, false},
+		{"", Invalid, true},
 		{"asdf", Invalid, true},
 	}
 	for _, test := range tests {

@@ -16,8 +16,13 @@ func runTests(t *testing.T, pluralRuleID string, tests []pluralFormTest) {
 	pluralRules := CLDRPluralRules()
 	if rule := pluralRules[pluralRuleID]; rule != nil {
 		for _, test := range tests {
-			if plural, err := rule.PluralForm(test.num); plural != test.pluralForm {
-				t.Errorf("%s: PluralCategory(%#v) returned %s, %v; expected %s", pluralRuleID, test.num, plural, err, test.pluralForm)
+			ops, err := newOperands(test.num)
+			if err != nil {
+				t.Errorf("%s: newOperands(%d) errored with %s", pluralRuleID, test.num, err)
+				break
+			}
+			if pluralForm := rule.PluralFormFunc(ops); pluralForm != test.pluralForm {
+				t.Errorf("%s: PluralFormFunc(%#v) returned %q, %v; expected %q", pluralRuleID, ops, pluralForm, err, test.pluralForm)
 			}
 		}
 	} else {
