@@ -39,7 +39,7 @@ type TranslatorExperiment struct {
 // }
 
 // ExtractTranslations extracts translations from the bytes of a Go source file.
-func ExtractTranslations(buf []byte) ([]*Translation, error) {
+func ExtractTranslations(buf []byte) ([]*MessageTemplate, error) {
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "", buf, parser.AllErrors)
 	if err != nil {
@@ -47,6 +47,6 @@ func ExtractTranslations(buf []byte) ([]*Translation, error) {
 	}
 	fmt.Printf("%#v\n", file)
 
-	translations := []*Translation{}
+	translations := []*MessageTemplate{}
 	return translations, nil
 }

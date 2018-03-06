@@ -10,12 +10,12 @@ import (
 // UnmarshalFunc unmarshals data into v.
 type UnmarshalFunc func(data []byte, v interface{}) error
 
-// Bundle stores all translations and pluralization rules.
+// Bundle stores all messages and pluralization rules.
 // Generally, your application should only need a single bundle
 // that is initialized early in your application's lifecycle.
 type Bundle struct {
-	// Translations maps language tags to language ids to translations.
-	Translations map[string]map[string]*Translation
+	// MessageTemplates maps language tags to language ids to message templates.
+	MessageTemplates map[string]map[string]*MessageTemplate
 
 	// PluralRules maps language tags to their plural rules.
 	PluralRules map[string]*PluralRule
@@ -43,31 +43,31 @@ func (b *Bundle) RegisterUnmarshalFunc(format string, unmarshalFunc UnmarshalFun
 	b.UnmarshalFuncs[format] = unmarshalFunc
 }
 
-// LoadTranslationFile loads the bytes from path
-// and then calls ParseTranslationFileBytes.
-func (b *Bundle) LoadTranslationFile(path string) error {
+// LoadMessageFile loads the bytes from path
+// and then calls ParseMessageFileBytes.
+func (b *Bundle) LoadMessageFile(path string) error {
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	return b.ParseTranslationFileBytes(buf, path)
+	return b.ParseMessageFileBytes(buf, path)
 }
 
-// MustLoadTranslationFile is similar to LoadTranslationFile
+// MustLoadMessageFile is similar to LoadTranslationFile
 // except it panics if an error happens.
-func (b *Bundle) MustLoadTranslationFile(path string) {
-	if err := b.LoadTranslationFile(path); err != nil {
+func (b *Bundle) MustLoadMessageFile(path string) {
+	if err := b.LoadMessageFile(path); err != nil {
 		panic(err)
 	}
 }
 
-// ParseTranslationFileBytes parses the bytes in buf to add translations to the bundle.
+// ParseMessageFileBytes parses the bytes in buf to add translations to the bundle.
 // It is useful for parsing translation files embedded with go-bindata.
 //
 // The format of the file is everything after the last ".".
 //
 // The language tag of path is the last match of LanguageTagRegex, excluding everything after the last ".".
-func (b *Bundle) ParseTranslationFileBytes(buf []byte, path string) error {
+func (b *Bundle) ParseMessageFileBytes(buf []byte, path string) error {
 	if len(buf) == 0 {
 		return nil
 	}
@@ -83,7 +83,7 @@ func (b *Bundle) ParseTranslationFileBytes(buf []byte, path string) error {
 		return err
 	}
 
-	var translations []*Translation
+	var messageTemplates []*MessageTemplate
 	for id, data := range raw {
 		strdata := make(map[string]string)
 		switch value := data.(type) {
@@ -112,11 +112,11 @@ func (b *Bundle) ParseTranslationFileBytes(buf []byte, path string) error {
 		default:
 			return fmt.Errorf("translation key %s in %s has invalid value: %#v", id, path, value)
 		}
-		t, err := NewTranslation(id, strdata)
+		t, err := NewMessageTemplate(id, strdata)
 		if err != nil {
 			return err
 		}
-		translations = append(translations, t)
+		messageTemplates = append(messageTemplates, t)
 	}
 	pathNoFormat := path[:len(path)-len(format)]
 	langTags := LanguageTagRegex.FindAllString(pathNoFormat, -1)
@@ -124,7 +124,7 @@ func (b *Bundle) ParseTranslationFileBytes(buf []byte, path string) error {
 		return fmt.Errorf("no language tag found in path: %s", path)
 	}
 	langTag := langTags[len(langTags)-1]
-	return b.AddTranslations(langTag, translations...)
+	return b.AddMessageTemplates(langTag, messageTemplates...)
 }
 
 func parseFormat(path string) string {
@@ -136,17 +136,17 @@ func parseFormat(path string) string {
 	return ""
 }
 
-// MustParseTranslationFileBytes is similar to ParseTranslationFileBytes
+// MustParseMessageFileBytes is similar to ParseMessageFileBytes
 // except it panics if an error happens.
-func (b *Bundle) MustParseTranslationFileBytes(buf []byte, path string) {
-	if err := b.ParseTranslationFileBytes(buf, path); err != nil {
+func (b *Bundle) MustParseMessageFileBytes(buf []byte, path string) {
+	if err := b.ParseMessageFileBytes(buf, path); err != nil {
 		panic(err)
 	}
 }
 
-// AddTranslations adds translations for a language.
-// It is useful if your translations are in a format not supported by ParseTranslationFileBytes.
-func (b *Bundle) AddTranslations(langTag string, translations ...*Translation) error {
+// AddMessageTemplates adds message templates for a language.
+// It is useful if your messages are in a format not supported by ParseMessageFileBytes.
+func (b *Bundle) AddMessageTemplates(langTag string, messageTemplates ...*MessageTemplate) error {
 	if b.PluralRules == nil {
 		b.PluralRules = CLDRPluralRules()
 	}
@@ -162,14 +162,14 @@ func (b *Bundle) AddTranslations(langTag string, translations ...*Translation) e
 		return fmt.Errorf("no plural rule registered for %s", pluralID)
 	}
 	b.PluralRules[langTag] = pluralRule
-	if b.Translations == nil {
-		b.Translations = make(map[string]map[string]*Translation)
+	if b.MessageTemplates == nil {
+		b.MessageTemplates = make(map[string]map[string]*MessageTemplate)
 	}
-	if b.Translations[langTag] == nil {
-		b.Translations[langTag] = make(map[string]*Translation)
+	if b.MessageTemplates[langTag] == nil {
+		b.MessageTemplates[langTag] = make(map[string]*MessageTemplate)
 	}
-	for _, t := range translations {
-		b.Translations[langTag][t.ID] = t
+	for _, t := range messageTemplates {
+		b.MessageTemplates[langTag][t.ID] = t
 	}
 	return nil
 }

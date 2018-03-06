@@ -7,85 +7,85 @@ import (
 	"github.com/nicksnyder/go-i18n/v2-beta/i18n"
 )
 
-func ExampleTranslator_Translate_missingTranslation() {
+func ExampleLocalizer_Localize_missingTranslation() {
 	bundle := i18n.NewBundle()
-	translator := i18n.NewTranslator(bundle, "es-es")
-	translated, err := translator.Translate("HelloWorld")
-	fmt.Println(translated)
+	localizer := i18n.NewLocalizer(bundle, "es-es")
+	localized, err := localizer.Localize("HelloWorld")
+	fmt.Println(localized)
 	fmt.Println(err)
 	// Output:
 	//
 	// <nil>
 }
 
-func ExampleTranslator_MustTranslate() {
+func ExampleLocalizer_MustLocalize() {
 	bundle := i18n.NewBundle()
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	bundle.MustParseTranslationFileBytes([]byte(`
+	bundle.MustParseMessageFileBytes([]byte(`
 HelloWorld = "Hola Mundo!"
 `), "es.toml")
-	translator := i18n.NewTranslator(bundle, "es-es")
-	fmt.Println(translator.MustTranslate("HelloWorld"))
+	localizer := i18n.NewLocalizer(bundle, "es-es")
+	fmt.Println(localizer.MustLocalize("HelloWorld"))
 	// Output:
 	// Hola Mundo!
 }
 
-func ExampleDefaultTranslator_MustTranslate() {
+func ExampleDefaultLocalizer_MustLocalize() {
 	bundle := i18n.NewBundle()
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	bundle.MustParseTranslationFileBytes([]byte(`
+	bundle.MustParseMessageFileBytes([]byte(`
 HelloWorld = "Hola Mundo!"
 `), "es.toml")
-	enTranslator := i18n.NewDefaultTranslator(bundle, "en", "en")
-	fmt.Println(enTranslator.MustTranslate("HelloWorld", "Hello World!"))
-	esTranslator := i18n.NewDefaultTranslator(bundle, "es-es", "en")
-	fmt.Println(esTranslator.MustTranslate("HelloWorld", "Hello World!"))
+	enTranslator := i18n.NewDefaultLocalizer(bundle, "en", "en")
+	fmt.Println(enTranslator.MustLocalize("HelloWorld", "Hello World!"))
+	esTranslator := i18n.NewDefaultLocalizer(bundle, "es-es", "en")
+	fmt.Println(esTranslator.MustLocalize("HelloWorld", "Hello World!"))
 	// Output:
 	// Hello World!
 	// Hola Mundo!
 }
 
-func ExampleTranslator_MustTranslate_template() {
+func ExampleLocalizer_MustLocalize_template() {
 	bundle := i18n.NewBundle()
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	bundle.MustParseTranslationFileBytes([]byte(`
+	bundle.MustParseMessageFileBytes([]byte(`
 HelloPerson = "Hola {{.Person}}!"
 `), "es-es.toml")
-	translator := i18n.NewTranslator(bundle, "es-es")
+	localizer := i18n.NewLocalizer(bundle, "es-es")
 	bobMap := map[string]interface{}{"Person": "Bob"}
 	bobStruct := struct{ Person string }{Person: "Bob"}
-	fmt.Println(translator.MustTranslate("HelloPerson", bobMap))
-	fmt.Println(translator.MustTranslate("HelloPerson", bobStruct))
+	fmt.Println(localizer.MustLocalize("HelloPerson", bobMap))
+	fmt.Println(localizer.MustLocalize("HelloPerson", bobStruct))
 	// Output:
 	// Hola Bob!
 	// Hola Bob!
 }
 
-func ExampleDefaultTranslator_MustTranslate_template() {
+func ExampleDefaultLocalizer_MustLocalize_template() {
 	bundle := i18n.NewBundle()
-	translator := i18n.NewDefaultTranslator(bundle, "en", "en")
+	localizer := i18n.NewDefaultLocalizer(bundle, "en", "en")
 	bobMap := map[string]interface{}{"Person": "Bob"}
 	bobStruct := struct{ Person string }{Person: "Bob"}
-	fmt.Println(translator.MustTranslate("HelloPerson", "Hello {{.Person}}!", bobMap))
-	fmt.Println(translator.MustTranslate("HelloPerson", "Hello {{.Person}}!", bobStruct))
+	fmt.Println(localizer.MustLocalize("HelloPerson", "Hello {{.Person}}!", bobMap))
+	fmt.Println(localizer.MustLocalize("HelloPerson", "Hello {{.Person}}!", bobStruct))
 	// Output:
 	// Hello Bob!
 	// Hello Bob!
 }
 
-func ExampleTranslator_MustTranslate_plural() {
+func ExampleLocalizer_MustLocalize_plural() {
 	bundle := i18n.NewBundle()
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	bundle.MustParseTranslationFileBytes([]byte(`
+	bundle.MustParseMessageFileBytes([]byte(`
 [YourHeightInMeters]
 One = "You are {{.Count}} meter tall."
 Other = "You are {{.Count}} meters tall."
 `), "en.toml")
-	translator := i18n.NewTranslator(bundle, "en")
-	fmt.Println(translator.MustTranslate("YourHeightInMeters", 0))
-	fmt.Println(translator.MustTranslate("YourHeightInMeters", 1))
-	fmt.Println(translator.MustTranslate("YourHeightInMeters", 2))
-	fmt.Println(translator.MustTranslate("YourHeightInMeters", "1.7"))
+	localizer := i18n.NewLocalizer(bundle, "en")
+	fmt.Println(localizer.MustLocalize("YourHeightInMeters", 0))
+	fmt.Println(localizer.MustLocalize("YourHeightInMeters", 1))
+	fmt.Println(localizer.MustLocalize("YourHeightInMeters", 2))
+	fmt.Println(localizer.MustLocalize("YourHeightInMeters", "1.7"))
 	// Output:
 	// You are 0 meters tall.
 	// You are 1 meter tall.
@@ -93,19 +93,19 @@ Other = "You are {{.Count}} meters tall."
 	// You are 1.7 meters tall.
 }
 
-func ExampleDefaultTranslator_MustTranslate_plural() {
+func ExampleDefaultLocalizer_MustLocalize_plural() {
 	bundle := i18n.NewBundle()
-	translator := i18n.NewDefaultTranslator(bundle, "en", "en")
-	yourHeightInMeters := &i18n.PluralMessage{
+	localizer := i18n.NewDefaultLocalizer(bundle, "en", "en")
+	yourHeightInMeters := &i18n.Message{
 		ID:          "YourHeightInMeters",
 		Description: "A message that says how tall you are.",
 		One:         "You are {{.Count}} meter tall.",
 		Other:       "You are {{.Count}} meters tall.",
 	}
-	fmt.Println(translator.MustTranslate(yourHeightInMeters, 0))
-	fmt.Println(translator.MustTranslate(yourHeightInMeters, 1))
-	fmt.Println(translator.MustTranslate(yourHeightInMeters, 2))
-	fmt.Println(translator.MustTranslate(yourHeightInMeters, "1.7"))
+	fmt.Println(localizer.MustLocalize(yourHeightInMeters, 0))
+	fmt.Println(localizer.MustLocalize(yourHeightInMeters, 1))
+	fmt.Println(localizer.MustLocalize(yourHeightInMeters, 2))
+	fmt.Println(localizer.MustLocalize(yourHeightInMeters, "1.7"))
 	// Output:
 	// You are 0 meters tall.
 	// You are 1 meter tall.
@@ -113,25 +113,25 @@ func ExampleDefaultTranslator_MustTranslate_plural() {
 	// You are 1.7 meters tall.
 }
 
-func ExampleTranslator_MustTranslate_pluralTemplate() {
+func ExampleLocalizer_MustLocalize_pluralTemplate() {
 	bundle := i18n.NewBundle()
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	bundle.MustParseTranslationFileBytes([]byte(`
+	bundle.MustParseMessageFileBytes([]byte(`
 [PersonHeightInMeters]
 One = "{{.Person}} is {{.Count}} meter tall."
 Other = "{{.Person}} is {{.Count}} meters tall."
 `), "en-en.toml")
-	translator := i18n.NewTranslator(bundle, "en-en")
+	localizer := i18n.NewLocalizer(bundle, "en-en")
 	bobMap := map[string]interface{}{"Person": "Bob"}
 	bobStruct := struct{ Person string }{Person: "Bob"}
-	fmt.Println(translator.MustTranslate("PersonHeightInMeters", 0, bobMap))
-	fmt.Println(translator.MustTranslate("PersonHeightInMeters", 0, bobStruct))
-	fmt.Println(translator.MustTranslate("PersonHeightInMeters", 1, bobMap))
-	fmt.Println(translator.MustTranslate("PersonHeightInMeters", 1, bobStruct))
-	fmt.Println(translator.MustTranslate("PersonHeightInMeters", 2, bobMap))
-	fmt.Println(translator.MustTranslate("PersonHeightInMeters", 2, bobStruct))
-	fmt.Println(translator.MustTranslate("PersonHeightInMeters", "1.7", bobMap))
-	fmt.Println(translator.MustTranslate("PersonHeightInMeters", "1.7", bobStruct))
+	fmt.Println(localizer.MustLocalize("PersonHeightInMeters", 0, bobMap))
+	fmt.Println(localizer.MustLocalize("PersonHeightInMeters", 0, bobStruct))
+	fmt.Println(localizer.MustLocalize("PersonHeightInMeters", 1, bobMap))
+	fmt.Println(localizer.MustLocalize("PersonHeightInMeters", 1, bobStruct))
+	fmt.Println(localizer.MustLocalize("PersonHeightInMeters", 2, bobMap))
+	fmt.Println(localizer.MustLocalize("PersonHeightInMeters", 2, bobStruct))
+	fmt.Println(localizer.MustLocalize("PersonHeightInMeters", "1.7", bobMap))
+	fmt.Println(localizer.MustLocalize("PersonHeightInMeters", "1.7", bobStruct))
 	// Output:
 	// Bob is 0 meters tall.
 	// Bob is 0 meters tall.
@@ -143,10 +143,10 @@ Other = "{{.Person}} is {{.Count}} meters tall."
 	// Bob is 1.7 meters tall.
 }
 
-func ExampleDefaultTranslator_MustTranslate_pluralTemplate() {
+func ExampleDefaultLocalizer_MustLocalize_pluralTemplate() {
 	bundle := i18n.NewBundle()
-	translator := i18n.NewDefaultTranslator(bundle, "en", "en")
-	personHeightInMeters := &i18n.PluralMessage{
+	localizer := i18n.NewDefaultLocalizer(bundle, "en", "en")
+	personHeightInMeters := &i18n.Message{
 		ID:          "PersonHeightInMeters",
 		Description: "A message that says how tall a person is.",
 		One:         "{{.Person}} is {{.Count}} meter tall.",
@@ -154,14 +154,14 @@ func ExampleDefaultTranslator_MustTranslate_pluralTemplate() {
 	}
 	bobMap := map[string]interface{}{"Person": "Bob"}
 	bobStruct := struct{ Person string }{Person: "Bob"}
-	fmt.Println(translator.MustTranslate(personHeightInMeters, 0, bobMap))
-	fmt.Println(translator.MustTranslate(personHeightInMeters, 0, bobStruct))
-	fmt.Println(translator.MustTranslate(personHeightInMeters, 1, bobMap))
-	fmt.Println(translator.MustTranslate(personHeightInMeters, 1, bobStruct))
-	fmt.Println(translator.MustTranslate(personHeightInMeters, 2, bobMap))
-	fmt.Println(translator.MustTranslate(personHeightInMeters, 2, bobStruct))
-	fmt.Println(translator.MustTranslate(personHeightInMeters, "1.7", bobMap))
-	fmt.Println(translator.MustTranslate(personHeightInMeters, "1.7", bobStruct))
+	fmt.Println(localizer.MustLocalize(personHeightInMeters, 0, bobMap))
+	fmt.Println(localizer.MustLocalize(personHeightInMeters, 0, bobStruct))
+	fmt.Println(localizer.MustLocalize(personHeightInMeters, 1, bobMap))
+	fmt.Println(localizer.MustLocalize(personHeightInMeters, 1, bobStruct))
+	fmt.Println(localizer.MustLocalize(personHeightInMeters, 2, bobMap))
+	fmt.Println(localizer.MustLocalize(personHeightInMeters, 2, bobStruct))
+	fmt.Println(localizer.MustLocalize(personHeightInMeters, "1.7", bobMap))
+	fmt.Println(localizer.MustLocalize(personHeightInMeters, "1.7", bobStruct))
 	// Output:
 	// Bob is 0 meters tall.
 	// Bob is 0 meters tall.

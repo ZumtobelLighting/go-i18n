@@ -10,16 +10,16 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-var simpleTranslation = i18n.MustNewTranslation("simple", map[string]string{
+var simpleMessageTemplate = i18n.MustNewMessageTemplate("simple", map[string]string{
 	"other": "simple translation",
 })
 
-var detailTranslation = i18n.MustNewTranslation("detail", map[string]string{
+var detailMessageTemplate = i18n.MustNewMessageTemplate("detail", map[string]string{
 	"description": "detail description",
 	"other":       "detail translation",
 })
 
-var everythingTranslation = i18n.MustNewTranslation("everything", map[string]string{
+var everythingMessageTemplate = i18n.MustNewMessageTemplate("everything", map[string]string{
 	"description": "everything description",
 	"zero":        "zero translation",
 	"one":         "one translation",
@@ -32,7 +32,7 @@ var everythingTranslation = i18n.MustNewTranslation("everything", map[string]str
 func TestJSON(t *testing.T) {
 	var bundle i18n.Bundle
 	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
-	bundle.MustParseTranslationFileBytes([]byte(`{
+	bundle.MustParseMessageFileBytes([]byte(`{
 	"simple": "simple translation",
 	"detail": {
 		"description": "detail description",
@@ -49,15 +49,15 @@ func TestJSON(t *testing.T) {
 	}
 }`), "en-US.json")
 
-	expectTranslation(t, bundle, "en-US", "simple", simpleTranslation)
-	expectTranslation(t, bundle, "en-US", "detail", detailTranslation)
-	expectTranslation(t, bundle, "en-US", "everything", everythingTranslation)
+	expectMessageTemplate(t, bundle, "en-US", "simple", simpleMessageTemplate)
+	expectMessageTemplate(t, bundle, "en-US", "detail", detailMessageTemplate)
+	expectMessageTemplate(t, bundle, "en-US", "everything", everythingMessageTemplate)
 }
 
 func TestYAML(t *testing.T) {
 	var bundle i18n.Bundle
 	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
-	bundle.MustParseTranslationFileBytes([]byte(`
+	bundle.MustParseMessageFileBytes([]byte(`
 # Comment
 simple: simple translation
 
@@ -77,15 +77,15 @@ everything:
   other: other translation
 `), "en-US.yaml")
 
-	expectTranslation(t, bundle, "en-US", "simple", simpleTranslation)
-	expectTranslation(t, bundle, "en-US", "detail", detailTranslation)
-	expectTranslation(t, bundle, "en-US", "everything", everythingTranslation)
+	expectMessageTemplate(t, bundle, "en-US", "simple", simpleMessageTemplate)
+	expectMessageTemplate(t, bundle, "en-US", "detail", detailMessageTemplate)
+	expectMessageTemplate(t, bundle, "en-US", "everything", everythingMessageTemplate)
 }
 
 func TestTOML(t *testing.T) {
 	var bundle i18n.Bundle
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	bundle.MustParseTranslationFileBytes([]byte(`
+	bundle.MustParseMessageFileBytes([]byte(`
 # Comment
 simple = "simple translation"
 
@@ -105,14 +105,14 @@ many = "many translation"
 other = "other translation"
 `), "en-US.toml")
 
-	expectTranslation(t, bundle, "en-US", "simple", simpleTranslation)
-	expectTranslation(t, bundle, "en-US", "detail", detailTranslation)
-	expectTranslation(t, bundle, "en-US", "everything", everythingTranslation)
+	expectMessageTemplate(t, bundle, "en-US", "simple", simpleMessageTemplate)
+	expectMessageTemplate(t, bundle, "en-US", "detail", detailMessageTemplate)
+	expectMessageTemplate(t, bundle, "en-US", "everything", everythingMessageTemplate)
 }
 
-func expectTranslation(t *testing.T, bundle i18n.Bundle, langTag, translationID string, expected *i18n.Translation) {
-	actual := bundle.Translations[langTag][translationID]
+func expectMessageTemplate(t *testing.T, bundle i18n.Bundle, langTag, messageID string, expected *i18n.MessageTemplate) {
+	actual := bundle.MessageTemplates[langTag][messageID]
 	if !reflect.DeepEqual(actual, expected) {
-		t.Errorf("bundle.Translations[%q][%q] = %#v; want %#v", langTag, translationID, actual, expected)
+		t.Errorf("bundle.MessageTemplates[%q][%q] = %#v; want %#v", langTag, messageID, actual, expected)
 	}
 }

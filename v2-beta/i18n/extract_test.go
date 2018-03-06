@@ -12,13 +12,13 @@ func TestExtract2(t *testing.T) {
 	tests := []struct {
 		name         string
 		file         string
-		translations []*i18n.Translation
+		translations []*i18n.MessageTemplate
 		err          error
 	}{
 		{
 			name:         "no translations",
 			file:         `package main`,
-			translations: []*i18n.Translation{},
+			translations: []*i18n.MessageTemplate{},
 			err:          nil,
 		},
 		{
@@ -28,7 +28,7 @@ func TestExtract2(t *testing.T) {
 			import "github.com/nicksnyder/go-i18n/v2-beta/i18n"
 
 			func main() {
-				_ := &i18n.PluralMessage{
+				_ := &i18n.Message{
 					ID:          "Plural ID",
 					Description: "Plural description",
 					Zero:        "Zero translation",
@@ -40,7 +40,7 @@ func TestExtract2(t *testing.T) {
 				}
 			}
 			`,
-			translations: []*i18n.Translation{},
+			translations: []*i18n.MessageTemplate{},
 			err:          nil,
 		},
 	}

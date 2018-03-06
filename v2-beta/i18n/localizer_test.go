@@ -7,7 +7,7 @@ import (
 	"github.com/nicksnyder/go-i18n/v2-beta/i18n"
 )
 
-func TestNewTranslator(t *testing.T) {
+func TestNewLocalizer(t *testing.T) {
 	tests := []struct {
 		prefs string
 		tags  []string
@@ -34,9 +34,9 @@ func TestNewTranslator(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		translator := i18n.NewTranslator(nil, test.prefs)
-		if !reflect.DeepEqual(translator.LanguageTags, test.tags) {
-			t.Errorf("i18n.NewTranslator(nil, %q)\ngot  %#v\nwant %#v", test.prefs, translator.LanguageTags, test.tags)
+		localizer := i18n.NewLocalizer(nil, test.prefs)
+		if !reflect.DeepEqual(localizer.LanguageTags, test.tags) {
+			t.Errorf("i18n.NewTranslator(nil, %q)\ngot  %#v\nwant %#v", test.prefs, localizer.LanguageTags, test.tags)
 		}
 	}
 }

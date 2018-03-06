@@ -12,27 +12,27 @@ import (
 // Language tags are case-insensitive.
 var LanguageTagRegex = regexp.MustCompile(`[a-zA-Z]{2,}([\-_][a-zA-Z]{2,})*`)
 
-// Translator provides Translate and MustTranslate methods to translate messages.
+// Localizer provides Localize and MustLocalize methods that return localized messages.
 //
-// Use DefaultTranslator to define default translations in Go source code that
+// Use DefaultLocalizer to define default messages in Go source code that
 // can be extracted using the goi18n command.
-type Translator struct {
+type Localizer struct {
 
-	// Bundle is the bundle that the Translator returns translations from.
+	// Bundle contains the messages that can be returned by the Localizer.
 	Bundle *Bundle
 
-	// LanguageTags is the list of language tags that the Translator checks
-	// in order until it finds a translation.
+	// LanguageTags is the list of language tags that the Localizer checks
+	// in order when localizing a message.
 	LanguageTags []string
 }
 
-// NewTranslator returns a new Translator that looks up translations
+// NewLocalizer returns a new Localizer that looks up messages
 // in the bundle according to the order of language tags found in prefs.
 //
 // It can parse languages from Accept-Language headers (RFC 2616),
 // but it assumes weights are monotonically decreasing.
-func NewTranslator(bundle *Bundle, prefs string) *Translator {
-	translator := &Translator{
+func NewLocalizer(bundle *Bundle, prefs string) *Localizer {
+	localizer := &Localizer{
 		Bundle:       bundle,
 		LanguageTags: []string{},
 	}
@@ -42,8 +42,8 @@ func NewTranslator(bundle *Bundle, prefs string) *Translator {
 	for _, langTag := range langTags {
 		tags = append(tags, expandTag(langTag)...)
 	}
-	translator.LanguageTags = dedupe(tags)
-	return translator
+	localizer.LanguageTags = dedupe(tags)
+	return localizer
 }
 
 func expandTag(tag string) []string {
@@ -72,55 +72,59 @@ func dedupe(strs []string) []string {
 	return deduped
 }
 
-//     Translate(id string)
-//     Translate(id string, templateData interface{})
-//     Translate(id string, pluralCount interface{})
-//     Translate(id string, pluralCount, templateData interface{})
-func (t *Translator) Translate(id string, args ...interface{}) (string, error) {
+// Localize returns the localized message.
+// If no message is found in the bundle, it returns the empty string.
+//
+// Valid calls to Localize have one of the following signatures:
+//     Localize(id string)
+//     Localize(id string, templateData interface{})
+//     Localize(id string, pluralCount interface{})
+//     Localize(id string, pluralCount, templateData interface{})
+func (l *Localizer) Localize(id string, args ...interface{}) (string, error) {
 	pluralCount, templateData := parseArgs(args)
 	operands, _ := newOperands(pluralCount)
-	return t.translate(id, operands, templateData)
+	return l.localize(id, operands, templateData)
 }
 
-func (t *Translator) translate(id string, operands *Operands, templateData interface{}) (string, error) {
-	for _, langTag := range t.LanguageTags {
-		translations := t.Bundle.Translations[langTag]
-		if translations == nil {
+func (l *Localizer) localize(id string, operands *Operands, templateData interface{}) (string, error) {
+	for _, langTag := range l.LanguageTags {
+		templates := l.Bundle.MessageTemplates[langTag]
+		if templates == nil {
 			continue
 		}
-		translation := translations[id]
-		if translation == nil {
+		template := templates[id]
+		if template == nil {
 			continue
 		}
-		pluralForm := t.pluralForm(langTag, operands)
+		pluralForm := l.pluralForm(langTag, operands)
 		if pluralForm == Invalid {
 			return "", fmt.Errorf("unable to pluralize %q because there no plural rule for %q", id, langTag)
 		}
-		if translated := translation.Translate(pluralForm, templateData); translated != "" {
-			return translated, nil
+		if localized := template.Execute(pluralForm, templateData); localized != "" {
+			return localized, nil
 		}
 	}
 	return "", nil
 }
 
-func (t *Translator) pluralForm(langTag string, operands *Operands) PluralForm {
+func (l *Localizer) pluralForm(langTag string, operands *Operands) PluralForm {
 	if operands == nil {
 		return Other
 	}
-	pluralRule := t.Bundle.PluralRules[langTag]
+	pluralRule := l.Bundle.PluralRules[langTag]
 	if pluralRule == nil {
 		return Invalid
 	}
 	return pluralRule.PluralFormFunc(operands)
 }
 
-// MustTranslate is similar to Translate, except it panics if an error happens.
-func (t *Translator) MustTranslate(id string, args ...interface{}) string {
-	translated, err := t.Translate(id, args...)
+// MustLocalize is similar to Localize, except it panics if an error happens.
+func (l *Localizer) MustLocalize(id string, args ...interface{}) string {
+	localized, err := l.Localize(id, args...)
 	if err != nil {
 		panic(err)
 	}
-	return translated
+	return localized
 }
 
 func parseArgs(args []interface{}) (count interface{}, data interface{}) {
